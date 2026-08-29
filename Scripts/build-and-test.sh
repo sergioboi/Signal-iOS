@@ -8,6 +8,8 @@ SCHEMA_DIR="$HOME/Library/Signal-iOS-Schema"
 rm -rf "$SCHEMA_DIR"
 mkdir -p "$SCHEMA_DIR"
 
+XCODE_XCCONFIG_FILE="${XCODE_XCCONFIG_FILE:-$PWD/Config/XcodeCache.xcconfig}"
+
 echo
 echo "Available iOS Simulator runtimes:"
 xcrun simctl list runtimes
@@ -36,6 +38,7 @@ set -o pipefail \
   -workspace Signal.xcworkspace \
   -scheme Signal \
   -destination "platform=iOS Simulator,id=$LATEST_IOS_SIM_ID" \
+  -xcconfig "$XCODE_XCCONFIG_FILE" \
   -disableAutomaticPackageResolution \
   -test-timeouts-enabled YES \
   -maximum-test-execution-time-allowance 300 \

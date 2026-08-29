@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches:
@@ -44,6 +45,18 @@ jobs:
         run: |
           Scripts/check_xcode_version.py --relaxed
 
+      - name: Show runner network location
+        run: |
+          echo "Runner:"
+          echo "  name=$RUNNER_NAME"
+          echo "  os=$RUNNER_OS"
+          echo "  arch=$RUNNER_ARCH"
+
+          echo
+          echo "Network location:"
+          curl -fsSL https://www.cloudflare.com/cdn-cgi/trace \
+            | grep -E '^(ip|loc|colo)='
+
       - name: Download Metal toolchain
         run: |
           xcodebuild -downloadComponent MetalToolchain
@@ -61,7 +74,23 @@ jobs:
         with:
           bundler-cache: true
 
+      - name: Install xcodecacheprog
+        run: exec ./.github/scripts/install-xcodecacheprog.sh
+
+      - name: Setup Xcode compilation cache
+        env:
+          XCODECACHEPROG_TOKEN: ${{ secrets.XCODECACHEPROG_TOKEN }}
+        run: |
+          xcodecacheprog sync \
+            --credential-name signal-ios \
+            --credential-env XCODECACHEPROG_TOKEN
+
+      - name: Show cache status
+        run: xcodecacheprog status
+
       - name: Build and Test
+        env:
+          XCODE_XCCONFIG_FILE: ${{ github.workspace }}/Config/XcodeCache.xcconfig
         run: Scripts/build-and-test.sh
 
       - name: Upload build logs
