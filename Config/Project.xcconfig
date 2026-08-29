@@ -11,4 +11,4 @@ OTHER_SWIFT_FLAGS = $(inherited) -warnings-as-errors
 // User-specific overrides
 #include? "User.xcconfig"
 
-#include XcodeCache.xcconfig
+#include "XcodeCache.xcconfig"
