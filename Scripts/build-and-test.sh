@@ -38,6 +38,7 @@ set -o pipefail \
   -workspace Signal.xcworkspace \
   -scheme Signal \
   -destination "platform=iOS Simulator,id=$LATEST_IOS_SIM_ID" \
+  -xcconfig "$XCODE_XCCONFIG_FILE" \
   -disableAutomaticPackageResolution \
   -test-timeouts-enabled YES \
   -maximum-test-execution-time-allowance 300 \
