@@ -9,7 +9,13 @@ HEADER_SEARCH_PATHS = $(inherited) \
 FRAMEWORK_SEARCH_PATHS = $(inherited) \
     $(PODS_CONFIGURATION_BUILD_DIR)/CocoaLumberjack
 
-OTHER_CFLAGS = $(inherited) -Wno-error=deprecated-declarations
+// Normal C / Objective-C compilation
+OTHER_CFLAGS = $(inherited) \
+    -Wno-error=deprecated-declarations
+
+// Clang modules compiled through Swift's explicit-module pipeline
+OTHER_SWIFT_FLAGS = $(inherited) \
+    -Xcc -Wno-error=deprecated-declarations
 
 COMPILATION_CACHE_ENABLE_INTEGRATED_QUERIES = YES
 COMPILATION_CACHE_ENABLE_DETACHED_KEY_QUERIES = YES
