@@ -9,6 +9,7 @@ rm -rf "$SCHEMA_DIR"
 mkdir -p "$SCHEMA_DIR"
 
 XCODE_XCCONFIG_FILE="${XCODE_XCCONFIG_FILE:-$PWD/Config/XcodeCache.xcconfig}"
+XCODEBUILD_ACTIONS="${XCODEBUILD_ACTIONS:-build test}"
 
 echo
 echo "Available iOS Simulator runtimes:"
@@ -33,6 +34,8 @@ echo
 echo "Using simulator: $LATEST_IOS_SIM_ID"
 
 echo
+echo "Using xcodebuild actions: $XCODEBUILD_ACTIONS"
+
 set -o pipefail \
 && NSUnbufferedIO=YES TEST_RUNNER_SCHEMA_DUMP_PATH="$SCHEMA_DIR/schema.json" xcodebuild \
   -workspace Signal.xcworkspace \
@@ -44,7 +47,7 @@ set -o pipefail \
   -maximum-test-execution-time-allowance 300 \
   -default-test-execution-time-allowance 60 \
   -resultBundlePath "$LOG_DIR/TestResult.xcresult" \
-  build test \
+  ${=XCODEBUILD_ACTIONS} \
   2>&1 \
 | tee "$LOG_DIR/Signal-CI.log" \
 | xcbeautify \
@@ -56,14 +59,16 @@ done
 
 XCODEBUILD_RESULT_CODE=$?
 
-xcrun \
-  xcresulttool \
-  get \
-  test-results \
-  summary \
-  --path "$LOG_DIR/TestResult.xcresult" \
-  > "$LOG_DIR/TestResultSummary.json"
+if [[ " $XCODEBUILD_ACTIONS " == *" test "* ]]; then
+  xcrun \
+    xcresulttool \
+    get \
+    test-results \
+    summary \
+    --path "$LOG_DIR/TestResult.xcresult" \
+    > "$LOG_DIR/TestResultSummary.json"
 
-Scripts/parse-xcresult.py "$LOG_DIR/TestResultSummary.json"
+  Scripts/parse-xcresult.py "$LOG_DIR/TestResultSummary.json"
+fi
 
 exit $XCODEBUILD_RESULT_CODE

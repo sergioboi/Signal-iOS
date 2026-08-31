@@ -44,9 +44,10 @@ jobs:
       - name: Ensure warm job starts without CAS data
         run: rm -rf .ci/cas-build-cache
 
-      - name: Warm CASBuildCache
+      - name: Warm CASBuildCache with build-for-testing
         env:
           XCODE_XCCONFIG_FILE: ${{ github.workspace }}/Config/CASBuildCache.xcconfig
+          XCODEBUILD_ACTIONS: build build-for-testing
         run: exec ./.github/scripts/run-cas-cached-build.sh
 
       - name: Save CASBuildCache
@@ -104,7 +105,8 @@ jobs:
           du -sh .ci/cas-build-cache
           find .ci/cas-build-cache -maxdepth 2 -type f | head -n 30
 
-      - name: Build with restored CAS
+      - name: Build for testing with restored CAS
         env:
           XCODE_XCCONFIG_FILE: ${{ github.workspace }}/Config/CASBuildCache.xcconfig
+          XCODEBUILD_ACTIONS: build build-for-testing
         run: exec ./.github/scripts/run-cas-cached-build.sh

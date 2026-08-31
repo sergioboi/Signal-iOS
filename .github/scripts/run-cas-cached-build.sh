@@ -90,7 +90,7 @@ rm -rf "${HOME}/Library/Developer/Xcode/DerivedData"
 echo "Cache status before build"
 cas-cache-cli --config "$CONFIG_FILE" status
 
-echo "Running Signal build and tests"
+echo "Running configured Signal Xcode build"
 Scripts/build-and-test.sh
 
 stop_server
