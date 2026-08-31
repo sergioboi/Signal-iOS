@@ -1,0 +1,110 @@
+name: CAS cache two-job test
+
+on:
+  workflow_dispatch:
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode_26.6.app
+
+jobs:
+  warm-cache:
+    name: Warm CAS cache
+    timeout-minutes: 30
+    runs-on: macos-26
+    env:
+      FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 7
+
+    steps:
+      - name: Set Xcode version
+        run: echo DEVELOPER_DIR=/Applications/Xcode_26.6.app >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v6
+
+      - name: Check Xcode version
+        run: Scripts/check_xcode_version.py --relaxed
+
+      - name: Download Metal toolchain
+        run: xcodebuild -downloadComponent MetalToolchain
+
+      - name: Download iOS runtime
+        run: xcodebuild -downloadPlatform iOS
+
+      - uses: ./.github/actions/clone-everything
+        with:
+          access-token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install CASBuildCache
+        run: exec ./.github/scripts/install-cas-build-cache.sh
+
+      - name: Ensure warm job starts without CAS data
+        run: rm -rf .ci/cas-build-cache
+
+      - name: Warm CASBuildCache
+        env:
+          XCODE_XCCONFIG_FILE: ${{ github.workspace }}/Config/CASBuildCache.xcconfig
+        run: exec ./.github/scripts/run-cas-cached-build.sh
+
+      - name: Save CASBuildCache
+        uses: actions/cache/save@v6
+        with:
+          path: .ci/cas-build-cache
+          key: casbuildcache-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}-${{ github.run_id }}
+
+  verify-cache:
+    name: Verify CAS cache hit
+    needs: warm-cache
+    timeout-minutes: 30
+    runs-on: macos-26
+    env:
+      FASTLANE_XCODEBUILD_SETTINGS_RETRIES: 7
+
+    steps:
+      - name: Set Xcode version
+        run: echo DEVELOPER_DIR=/Applications/Xcode_26.6.app >> "$GITHUB_ENV"
+
+      - uses: actions/checkout@v6
+
+      - name: Check Xcode version
+        run: Scripts/check_xcode_version.py --relaxed
+
+      - name: Download Metal toolchain
+        run: xcodebuild -downloadComponent MetalToolchain
+
+      - name: Download iOS runtime
+        run: xcodebuild -downloadPlatform iOS
+
+      - uses: ./.github/actions/clone-everything
+        with:
+          access-token: ${{ secrets.ACCESS_TOKEN }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Install CASBuildCache
+        run: exec ./.github/scripts/install-cas-build-cache.sh
+
+      - name: Restore CASBuildCache produced by warm job
+        id: restore-cas
+        uses: actions/cache/restore@v6
+        with:
+          path: .ci/cas-build-cache
+          key: casbuildcache-v1-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}-${{ github.run_id }}
+          fail-on-cache-miss: true
+
+      - name: Show restored cache
+        run: |
+          echo "cache-hit=${{ steps.restore-cas.outputs.cache-hit }}"
+          du -sh .ci/cas-build-cache
+          find .ci/cas-build-cache -maxdepth 2 -type f | head -n 30
+
+      - name: Build with restored CAS
+        env:
+          XCODE_XCCONFIG_FILE: ${{ github.workspace }}/Config/CASBuildCache.xcconfig
+        run: exec ./.github/scripts/run-cas-cached-build.sh

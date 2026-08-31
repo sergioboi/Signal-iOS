@@ -1,0 +1,22 @@
+SWIFT_ENABLE_COMPILE_CACHE = YES
+COMPILATION_CACHE_ENABLE_CACHING = YES
+COMPILATION_CACHE_ENABLE_PLUGIN = YES
+COMPILATION_CACHE_REMOTE_SERVICE_PATH = $(HOME)/.local/state/cas-build-cache/cache.sock
+
+// HEADER_SEARCH_PATHS = $(inherited) $(PODS_ROOT)/LibSignalClient/swift/Sources/SignalFfi
+
+// FRAMEWORK_SEARCH_PATHS = $(inherited) $(PODS_CONFIGURATION_BUILD_DIR)/CocoaLumberjack
+
+// Normal C / Objective-C compilation
+// OTHER_CFLAGS = $(inherited) -Wno-error=deprecated-declarations
+
+// Clang modules compiled through Swift's explicit-module pipeline
+// OTHER_SWIFT_FLAGS = $(inherited) -Xcc -Wno-error=deprecated-declarations
+
+// COMPILATION_CACHE_ENABLE_INTEGRATED_QUERIES = YES
+// COMPILATION_CACHE_ENABLE_DETACHED_KEY_QUERIES = YES
+// SWIFT_ENABLE_EXPLICIT_MODULES = YES
+// SWIFT_USE_INTEGRATED_DRIVER = YES
+
+// CLANG_ENABLE_COMPILE_CACHE = YES
+// CLANG_ENABLE_MODULES = YES
